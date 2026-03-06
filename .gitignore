@@ -1,3 +1,10 @@
+# Scripts & Logs
+*.bat
+*.log
+*.txt
+# 但必须保留依赖清单
+!requirements.txt
+
 # Python
 __pycache__/
 *.pyc
