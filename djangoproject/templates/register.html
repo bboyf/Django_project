@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}用户注册 - 教师评价系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="content-card">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-user-plus"></i> 用户注册
+            </h2>
+            
+            {% if hint %}
+            <div class="alert {% if '成功' in hint %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+                <i class="fas fa-{% if '成功' in hint %}check-circle{% else %}exclamation-circle{% endif %}"></i> {{ hint }}
+            </div>
+            {% endif %}
+            
+            <form action="/register/" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user"></i> 用户名
+                    </label>
+                    <input type="text" class="form-control form-control-lg" 
+                           id="username" name="username" required 
+                           placeholder="请输入用户名（3-20个字符）"
+                           minlength="3" maxlength="20">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> 密码
+                    </label>
+                    <input type="password" class="form-control form-control-lg" 
+                           id="password" name="password" required 
+                           placeholder="请输入密码（至少6位）"
+                           minlength="6">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="tel" class="form-label">
+                        <i class="fas fa-phone"></i> 手机号
+                    </label>
+                    <input type="tel" class="form-control form-control-lg" 
+                           id="tel" name="tel" required 
+                           placeholder="请输入手机号"
+                           pattern="[0-9]{11}">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="captcha" class="form-label">
+                        <i class="fas fa-shield-alt"></i> 验证码
+                    </label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" 
+                               id="captcha" name="captcha" required 
+                               placeholder="请输入验证码">
+                        <img src="/captcha/" alt="验证码" 
+                             id="captcha-img" 
+                             style="height: 48px; cursor: pointer; border-radius: 0 8px 8px 0;"
+                             title="点击刷新">
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> 注册
+                    </button>
+                </div>
+                
+                <div class="text-center">
+                    <a href="/" class="text-decoration-none me-3">
+                        <i class="fas fa-home"></i> 返回首页
+                    </a>
+                    <a href="/login/" class="text-decoration-none">
+                        <i class="fas fa-sign-in-alt"></i> 已有账号？去登录
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 点击验证码图片刷新
+    $('#captcha-img').click(function() {
+        $(this).attr('src', '/captcha/?t=' + new Date().getTime());
+    });
+});
+</script>
+{% endblock %}

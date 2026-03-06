@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subject.name }} - 教师列表{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-chalkboard-teacher"></i> {{ subject.name }}
+        </h1>
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+    <hr>
+    
+    {% if not teachers %}
+    <div class="alert alert-info text-center" role="alert">
+        <i class="fas fa-info-circle"></i> 暂无该学科的教师信息
+    </div>
+    {% else %}
+    {% for teacher in teachers %}
+    <div class="teacher-card">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <img src="/static/images/{{ teacher.photo }}" 
+                     alt="{{ teacher.name }}" 
+                     class="teacher-photo"
+                     onerror="this.src='https://via.placeholder.com/120/667eea/ffffff?text={{ teacher.name|slice:":1" }}'">
+            </div>
+            <div class="col">
+                <h4 class="mb-3">
+                    <i class="fas fa-user-tie"></i> {{ teacher.name }}
+                    <span class="badge bg-secondary ms-2">
+                        {{ teacher.sex | yesno:'男,女' }}
+                    </span>
+                </h4>
+                <p class="text-muted mb-2">
+                    <i class="fas fa-birthday-cake"></i> 出生日期：{{ teacher.birth }}
+                </p>
+                <p class="mb-3">
+                    <i class="fas fa-quote-left"></i> {{ teacher.intro }}
+                </p>
+                <div class="d-flex gap-3 align-items-center flex-wrap">
+                    <button class="btn btn-vote btn-vote-good vote-btn" data-url="/praise/?tno={{ teacher.no }}" data-teacher="{{ teacher.no }}" data-type="good">
+                        <i class="fas fa-thumbs-up"></i> 好评
+                        <span class="vote-count" id="good-{{ teacher.no }}">{{ teacher.good_count }}</span>
+                    </button>
+                    <button class="btn btn-vote btn-vote-bad vote-btn" data-url="/criticize/?tno={{ teacher.no }}" data-teacher="{{ teacher.no }}" data-type="bad">
+                        <i class="fas fa-thumbs-down"></i> 差评
+                        <span class="vote-count" id="bad-{{ teacher.no }}">{{ teacher.bad_count }}</span>
+                    </button>
+                    <div class="ms-auto">
+                        <small class="text-muted">
+                            好评率: <strong>{{ teacher.good_count|add:teacher.bad_count|default:1|floatformat:0 }}%</strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.vote-btn').on('click', function(e) {
+        e.preventDefault();
+        let btn = $(this);
+        let url = btn.data('url');
+        let teacherId = btn.data('teacher');
+        let voteType = btn.data('type');
+        
+        // 添加加载动画
+        btn.prop('disabled', true);
+        let originalHtml = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin"></i> 处理中...');
+        
+        $.getJSON(url, function(json) {
+            if (json.code == 20000) {
+                // 更新投票数
+                if (voteType == 'good') {
+                    $('#good-' + teacherId).text(json.count);
+                } else {
+                    $('#bad-' + teacherId).text(json.count);
+                }
+                
+                // 显示成功消息
+                showMessage('success', '投票成功！感谢您的参与。');
+            } else {
+                // 显示错误消息
+                showMessage('warning', json.mesg);
+            }
+        }).fail(function() {
+            showMessage('danger', '网络错误，请稍后重试');
+        }).always(function() {
+            // 恢复按钮
+            btn.prop('disabled', false);
+            btn.html(originalHtml);
+        });
+    });
+    
+    function showMessage(type, message) {
+        let alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+                 role="alert" style="z-index: 9999; min-width: 300px;">
+                <i class="fas fa-${type == 'success' ? 'check-circle' : type == 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        $('body').append(alertHtml);
+        
+        // 3秒后自动关闭
+        setTimeout(function() {
+            $('.alert').fadeOut(500, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
